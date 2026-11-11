@@ -1,0 +1,45 @@
+{
+  "name": "Ejemplo Flujo RAG & Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-webhook",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "e0a618c7-436f-40e1-b4f0-4fa2c645b201",
+      "name": "Webhook Entrante",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "prompt": "={{ $json.body.pregunta }}"
+      },
+      "id": "a91834df-741a-4d2a-8be1-f67e2a9b3112",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Entrante": {
+      "main": [
+        [
+          {
+            "node": "Ollama Chat Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
