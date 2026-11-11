@@ -30,9 +30,9 @@
     "fallback_file": "academia/04_Guia_GitHub_Backups_y_Limpiador.md"
   },
   "mantenimiento": {
-    "title": "Mantenimiento Seguro y Limpiador en 3 Niveles",
-    "description": "Cundo usar el plumero (Azul), la papelera (Naranja) y el reseteo de emergencia (Rojo).",
+    "title": "Mantenimiento Seguro, Autoarranque y Plantillas",
+    "description": "Cundo usar el limpiador, autoarranque del sistema y cmo cargar los flujos nativos.",
     "url": "",
-    "fallback_file": "academia/04_Guia_GitHub_Backups_y_Limpiador.md"
+    "fallback_file": "academia/04_Guia_Mantenimiento_y_Autoarranque.md"
   }
 }

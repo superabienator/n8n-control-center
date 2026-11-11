@@ -19,6 +19,7 @@ from typing import Dict, Optional
 
 import customtkinter as ctk
 
+from autostart_manager import AutostartManager
 from core_manager import CoreManager
 
 # Appearance settings
@@ -58,12 +59,14 @@ class N8NControlCenterApp(ctk.CTk):
         self.minsize(980, 720)
         self.configure(fg_color=COLOR_BG)
 
-        # Initialize Core Manager
+        # Initialize Core Manager and Autostart Manager
         self.core = CoreManager(log_callback=self.thread_safe_log)
+        self.autostart = AutostartManager()
 
         # Variables for dynamic states
         self.current_webhook_url = tk.StringVar(value="http://localhost:5678/")
         self.auto_backup_var = tk.BooleanVar(value=self.core.settings.get("auto_backup_on_stop", False))
+        self.autostart_var = tk.BooleanVar(value=self.autostart.is_autostart_enabled())
         self.is_busy = False
 
         # Build UI
@@ -640,7 +643,7 @@ class N8NControlCenterApp(ctk.CTk):
         )
         self.btn_restore_git.pack(side="left", padx=10)
 
-        # Auto-backup switch
+        # Switches row
         switch_row = ctk.CTkFrame(git_card, fg_color="transparent")
         switch_row.pack(fill="x", padx=16, pady=(0, 14))
 
@@ -653,6 +656,16 @@ class N8NControlCenterApp(ctk.CTk):
             command=self._on_toggle_auto_backup,
         )
         self.switch_auto_backup.pack(side="left")
+
+        self.switch_autostart = ctk.CTkSwitch(
+            switch_row,
+            text="🚀 Autoarranque con el sistema operativo",
+            variable=self.autostart_var,
+            font=ctk.CTkFont(size=12),
+            progress_color=COLOR_PRIMARY_BLUE,
+            command=self._on_toggle_autostart,
+        )
+        self.switch_autostart.pack(side="left", padx=(30, 0))
 
     # =========================================================================
     # TAB 4: Limpiador (Mantenimiento)
@@ -1109,6 +1122,22 @@ class N8NControlCenterApp(ctk.CTk):
         self.core.settings["auto_backup_on_stop"] = val
         self.core.save_settings()
         self.core.log(f"Configuración: Auto-backup al detener n8n = {val}", "info")
+
+    def _on_toggle_autostart(self):
+        val = self.autostart_var.get()
+        if val:
+            success = self.autostart.enable_autostart()
+            if success:
+                self.core.log("🚀 Autoarranque con el sistema operativo ACTIVADO.", "success")
+            else:
+                self.core.log("⚠️ No se pudo activar el autoarranque en este sistema.", "warning")
+                self.autostart_var.set(False)
+        else:
+            success = self.autostart.disable_autostart()
+            if success:
+                self.core.log("🛑 Autoarranque con el sistema operativo DESACTIVADO.", "info")
+            else:
+                self.core.log("⚠️ No se pudo desactivar el autoarranque.", "warning")
 
     def _open_backups_folder(self):
         p = self.core.backups_dir

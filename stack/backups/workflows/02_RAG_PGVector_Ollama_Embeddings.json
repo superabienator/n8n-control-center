@@ -1,0 +1,154 @@
+{
+  "name": "02 - RAG PGVector Ollama Embeddings",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "8c1e8f9f-9b2b-4399-9e87-111111111111",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un analista experto con acceso a la memoria vectorial PGVector de PostgreSQL. Responde a las consultas del usuario buscando primero en la base de conocimientos con la herramienta Vector Store Tool."
+        }
+      },
+      "id": "8c1e8f9f-9b2b-4399-9e87-222222222222",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        480,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {
+          "baseURL": "http://ollama:11434"
+        }
+      },
+      "id": "8c1e8f9f-9b2b-4399-9e87-333333333333",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        380,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "name": "base_conocimiento_rag",
+        "description": "Herramienta de búsqueda semántica en la base de datos vectorial PostgreSQL PGVector para responder preguntas sobre documentos, guías y políticas."
+      },
+      "id": "8c1e8f9f-9b2b-4399-9e87-444444444444",
+      "name": "Vector Store Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        560,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "tableName": "documentos_rag",
+        "options": {}
+      },
+      "id": "8c1e8f9f-9b2b-4399-9e87-555555555555",
+      "name": "Postgres PGVector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1,
+      "position": [
+        560,
+        740
+      ]
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text",
+        "options": {
+          "baseURL": "http://ollama:11434"
+        }
+      },
+      "id": "8c1e8f9f-9b2b-4399-9e87-666666666666",
+      "name": "Ollama Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        560,
+        920
+      ]
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres PGVector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

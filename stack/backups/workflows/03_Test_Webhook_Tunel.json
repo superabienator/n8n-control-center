@@ -1,0 +1,56 @@
+{
+  "name": "03 - Test Webhook Tunel Cloudflare",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "9d2f9a0a-ac3c-44aa-af98-111111111111",
+      "name": "Webhook Entrante",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        340
+      ],
+      "webhookId": "test-webhook-tunnel"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"mensaje\": \"¡Conexión exitosa a n8n Control Center Pro a través del Túnel Cloudflare!\",\n  \"fecha_utc\": \"{{ $now.toISO() }}\",\n  \"metodo\": \"{{ $json.headers['x-forwarded-method'] || 'POST' }}\",\n  \"datos_recibidos\": {{ JSON.stringify($json.body || $json.query || {}) }}\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "9d2f9a0a-ac3c-44aa-af98-222222222222",
+      "name": "Responder Confirmacion",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        500,
+        340
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Entrante": {
+      "main": [
+        [
+          {
+            "node": "Responder Confirmacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}
