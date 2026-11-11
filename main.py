@@ -130,6 +130,18 @@ class N8NControlCenterApp(ctk.CTk):
         )
         self.docker_status_badge.pack(side="left", padx=10)
 
+        self.btn_open_docker = ctk.CTkButton(
+            right_frame,
+            text="🐳 Iniciar Docker",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            fg_color=COLOR_PRIMARY_BLUE,
+            hover_color=COLOR_PRIMARY_BLUE_HOVER,
+            corner_radius=8,
+            width=120,
+            command=self._cmd_launch_docker,
+        )
+        self.btn_open_docker.pack(side="left", padx=5)
+
         open_web_btn = ctk.CTkButton(
             right_frame,
             text="🌐 Abrir n8n (:5678)",
@@ -990,8 +1002,10 @@ class N8NControlCenterApp(ctk.CTk):
                 # Docker Engine badge
                 if docker_ok:
                     self.docker_status_badge.configure(text="Docker: Activo ✅", text_color=COLOR_SUCCESS, fg_color="#122a22")
+                    self.btn_open_docker.configure(state="disabled", fg_color="#1a202c", text="🐳 Docker OK")
                 else:
                     self.docker_status_badge.configure(text="Docker: Inactivo ❌", text_color=COLOR_DANGER, fg_color="#2a1215")
+                    self.btn_open_docker.configure(state="normal", fg_color=COLOR_PRIMARY_BLUE, text="🐳 Iniciar Docker")
 
                 # Helper to set colors
                 def set_badge(dot, lbl, state):
@@ -1038,6 +1052,20 @@ class N8NControlCenterApp(ctk.CTk):
     # =========================================================================
     # Action Handlers
     # =========================================================================
+    def _cmd_launch_docker(self):
+        self.core.log("Intentando iniciar Docker Desktop...", "info")
+        ok = self.core.launch_docker_desktop()
+        if ok:
+            messagebox.showinfo(
+                "Docker Desktop",
+                "Se ha enviado la orden de inicio a Docker Desktop.\n\nEspera unos 20-30 segundos a que cargue el motor en segundo plano (el icono de la ballena debe estar verde en la barra de tareas de Windows) y luego pulsa 'Iniciar Stack Base'.",
+            )
+        else:
+            messagebox.showwarning(
+                "Docker Desktop",
+                "Por favor, abre la aplicación 'Docker Desktop' manualmente desde el Menú Inicio de Windows y espera a que el icono de la ballena esté en verde.",
+            )
+
     def _cmd_start_base(self):
         self.btn_start_base.configure(state="disabled")
         self.core.start_base_stack_async(

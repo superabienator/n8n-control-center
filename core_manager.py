@@ -31,7 +31,12 @@ def get_bundle_dir() -> Path:
 def get_app_dir() -> Path:
     """Directory where executable lives and where user data (stack/, academia/) should persist."""
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent.resolve()
+        exe_path = Path(sys.executable).resolve()
+        parent_dir = exe_path.parent
+        # If running from inside 'dist' folder in a repo, use project root
+        if parent_dir.name.lower() == "dist" and (parent_dir.parent / "requirements.txt").exists():
+            return parent_dir.parent.resolve()
+        return parent_dir
     return Path(__file__).parent.resolve()
 
 
@@ -153,6 +158,41 @@ class CoreManager:
             return res.returncode == 0
         except Exception:
             return False
+
+    def find_docker_desktop_executable(self) -> Optional[Path]:
+        """Finds the path to Docker Desktop on Windows, Mac or Linux."""
+        if platform.system() == "Windows":
+            candidates = [
+                Path.home() / "AppData" / "Local" / "Programs" / "DockerDesktop" / "Docker Desktop.exe",
+                Path("C:/Program Files/Docker/Docker/Docker Desktop.exe"),
+                Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Docker Desktop.lnk",
+            ]
+            for c in candidates:
+                if c.exists():
+                    return c
+        elif platform.system() == "Darwin":
+            p = Path("/Applications/Docker.app")
+            if p.exists():
+                return p
+        return None
+
+    def launch_docker_desktop(self) -> bool:
+        """Attempts to open Docker Desktop in the host operating system."""
+        exe = self.find_docker_desktop_executable()
+        self.log("Intentando iniciar Docker Desktop en el sistema...", "info")
+        try:
+            if platform.system() == "Windows" and exe:
+                os.startfile(str(exe))
+                return True
+            elif platform.system() == "Darwin":
+                subprocess.Popen(["open", "-a", "Docker"])
+                return True
+            elif platform.system() == "Linux":
+                subprocess.Popen(["systemctl", "start", "docker"])
+                return True
+        except Exception as e:
+            self.log(f"Error al abrir Docker Desktop: {e}", "warning")
+        return False
 
     # =========================================================================
     # Stack Templates & Setup
@@ -360,6 +400,24 @@ volumes:
     def start_base_stack_async(self, on_finish: Optional[Callable[[bool], None]] = None) -> None:
         """Starts Postgres and n8n asynchronously."""
         def worker():
+            if not self.check_docker_available():
+                self.log("⚠️ Docker Desktop no está en ejecución. Intentando abrirlo...", "warning")
+                opened = self.launch_docker_desktop()
+                if opened:
+                    self.log("Esperando a que el motor de Docker responda (puede tardar 15-30s)...", "info")
+                    start_t = time.time()
+                    while time.time() - start_t < 35:
+                        if self.check_docker_available():
+                            self.log("✅ ¡Docker Desktop se ha conectado con éxito!", "success")
+                            break
+                        time.sleep(3)
+
+                if not self.check_docker_available():
+                    self.log("❌ Docker no responde. Por favor abre la app 'Docker Desktop' desde tu Menú Inicio y espera a que el icono de la ballena esté en verde.", "error")
+                    if on_finish:
+                        on_finish(False)
+                    return
+
             self.init_stack_files()
             self.log("Levantando Stack Base (n8n + Postgres/PGVector)...")
             docker_cmd = self.get_docker_command()
@@ -368,7 +426,7 @@ volumes:
             if success:
                 self.log("✅ Stack Base iniciado correctamente.", "success")
             else:
-                self.log("❌ Error al iniciar el Stack Base.", "error")
+                self.log("❌ Error al iniciar el Stack Base. Verifica que Docker Desktop esté activo.", "error")
             if on_finish:
                 on_finish(success)
 

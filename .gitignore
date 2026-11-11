@@ -10,6 +10,7 @@ __pycache__/
 # Compilacin e instalador
 build/
 dist/
+*.exe
 *.spec
 
 # Archivos locales y secretos del stack
