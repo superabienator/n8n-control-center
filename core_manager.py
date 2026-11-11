@@ -40,6 +40,21 @@ def get_app_dir() -> Path:
     return Path(__file__).parent.resolve()
 
 
+WIN_NO_WINDOW = subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
+
+
+def run_silent(cmd: list[str], cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
+    """Runs a subprocess completely silently in the background without creating a console window."""
+    return subprocess.run(
+        cmd,
+        cwd=str(cwd) if cwd else None,
+        capture_output=True,
+        text=True,
+        check=False,
+        creationflags=WIN_NO_WINDOW,
+    )
+
+
 class CoreManager:
     """Manages Docker Compose stack, background threads, and integrations."""
 
@@ -133,7 +148,7 @@ class CoreManager:
     def get_docker_command(self) -> list[str]:
         """Detect whether 'docker compose' or 'docker-compose' is available."""
         try:
-            res = subprocess.run(["docker", "compose", "version"], capture_output=True, text=True, check=False)
+            res = run_silent(["docker", "compose", "version"])
             if res.returncode == 0:
                 return ["docker", "compose"]
         except Exception:
@@ -146,7 +161,7 @@ class CoreManager:
     def check_nvidia_gpu(self) -> bool:
         """Detects if an NVIDIA GPU is available on the host system."""
         try:
-            res = subprocess.run(["nvidia-smi"], capture_output=True, text=True, check=False)
+            res = run_silent(["nvidia-smi"])
             return res.returncode == 0
         except Exception:
             return False
@@ -154,7 +169,7 @@ class CoreManager:
     def check_docker_available(self) -> bool:
         """Checks if Docker engine is running."""
         try:
-            res = subprocess.run(["docker", "info"], capture_output=True, text=True, check=False)
+            res = run_silent(["docker", "info"])
             return res.returncode == 0
         except Exception:
             return False
@@ -364,7 +379,7 @@ volumes:
         try:
             # Query docker ps formatted JSON
             cmd = ["docker", "ps", "-a", "--format", "{{.Names}}:::{{.State}}:::{{.Status}}"]
-            res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            res = run_silent(cmd)
             if res.returncode != 0:
                 return statuses
 
@@ -421,14 +436,38 @@ volumes:
             self.init_stack_files()
             self.log("Levantando Stack Base (n8n + Postgres/PGVector)...")
             docker_cmd = self.get_docker_command()
-            code, _ = self.run_command_stream(docker_cmd + ["up", "-d", "postgres", "n8n"])
+            code, out = self.run_command_stream(docker_cmd + ["up", "-d", "postgres", "n8n"])
+
+            # Check if there is a container name conflict (e.g. orphan container from an old run)
+            if code != 0 and "Conflict. The container name" in out:
+                self.log("⚠️ Detectado conflicto de nombre con un contenedor previo. Liberando nombre...", "warning")
+                matches = re.findall(r'container name "(/?[a-zA-Z0-9_-]+)" is already in use', out)
+                for cname in matches:
+                    clean_name = cname.lstrip("/")
+                    self.log(f"Eliminando contenedor huérfano en conflicto '{clean_name}'...", "info")
+                    self.run_command_stream(["docker", "rm", "-f", clean_name])
+                self.log("Reintentando iniciar el Stack Base...", "info")
+                code, out = self.run_command_stream(docker_cmd + ["up", "-d", "postgres", "n8n"])
+
             success = code == 0
             if success:
                 self.log("✅ Stack Base iniciado correctamente.", "success")
+                if on_finish:
+                    on_finish(True, "Stack iniciado con éxito.")
             else:
-                self.log("❌ Error al iniciar el Stack Base. Verifica que Docker Desktop esté activo.", "error")
-            if on_finish:
-                on_finish(success)
+                user_msg = "Error al iniciar el stack."
+                if "Conflict. The container name" in out:
+                    user_msg = "Había un contenedor antiguo bloqueando el nombre. Ya se ha eliminado; pulsa de nuevo en 'Iniciar Stack Base'."
+                elif "port is already allocated" in out or "bind: address already in use" in out:
+                    user_msg = "Uno de los puertos requeridos (5678 para n8n o 5432 para Postgres) ya está siendo usado por otro programa en tu ordenador."
+                elif "pipe" in out or "daemon" in out:
+                    user_msg = "El motor de Docker Desktop no responde. Abre Docker Desktop y espera a que la ballena esté en verde."
+                else:
+                    user_msg = f"Detalle del error de Docker:\n{out[-250:]}"
+
+                self.log(f"❌ {user_msg}", "error")
+                if on_finish:
+                    on_finish(False, user_msg)
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -490,12 +529,7 @@ volumes:
             # Poll container logs for up to 30 seconds
             start_time = time.time()
             while time.time() - start_time < 30:
-                log_proc = subprocess.run(
-                    ["docker", "logs", "--tail", "50", "n8n_tunnel"],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
+                log_proc = run_silent(["docker", "logs", "--tail", "50", "n8n_tunnel"])
                 output = (log_proc.stdout or "") + (log_proc.stderr or "")
                 match = url_pattern.search(output)
                 if match:
@@ -628,10 +662,10 @@ volumes:
         """Adds workflow JSONs, commits, and pushes to Git."""
         try:
             # Check if current repo is a git repo
-            res = subprocess.run(["git", "status"], cwd=str(self.base_dir), capture_output=True, text=True, check=False)
+            res = run_silent(["git", "status"], cwd=self.base_dir)
             if res.returncode != 0:
                 self.log("Repositorio Git no inicializado en la carpeta raíz. Inicializando...", "warning")
-                subprocess.run(["git", "init"], cwd=str(self.base_dir), check=False)
+                run_silent(["git", "init"], cwd=self.base_dir)
 
             self.log("Preparando commit de flujos en Git...")
             self.run_command_stream(["git", "add", "stack/backups/workflows/"], cwd=self.base_dir)

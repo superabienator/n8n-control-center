@@ -1068,9 +1068,18 @@ class N8NControlCenterApp(ctk.CTk):
 
     def _cmd_start_base(self):
         self.btn_start_base.configure(state="disabled")
-        self.core.start_base_stack_async(
-            on_finish=lambda ok: self.after(0, lambda: self.btn_start_base.configure(state="normal"))
-        )
+
+        def on_done(ok, msg=""):
+            def ui():
+                self.btn_start_base.configure(state="normal")
+                if not ok:
+                    messagebox.showerror(
+                        "Error al Iniciar el Stack Base",
+                        f"No se pudo iniciar el Stack de n8n:\n\n{msg}\n\nRevisa la consola inferior para ver el registro completo.",
+                    )
+            self.after(0, ui)
+
+        self.core.start_base_stack_async(on_finish=on_done)
 
     def _cmd_stop_all(self):
         self.btn_stop_all.configure(state="disabled")
