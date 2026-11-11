@@ -1,95 +1,183 @@
-# 🚀 n8n Control Center Pro
-
-Aplicación de escritorio multiplataforma (Windows, Linux, macOS) para orquestar **n8n**, **PostgreSQL con PGVector (RAG)**, **Ollama (IA Local)**, **Túneles de Cloudflare** y sincronización GitOps de flujos.
+# ⚡ n8n Control Center Pro
+### *Orquestador DevOps, RAG Local (PGVector + Ollama), Túneles Cloudflare y GitOps*
+> **Filosofía Vibe Coding**: Construye agentes de IA, RAG y automatizaciones visuales complejas conectando bloques lógicos, con cero fricción técnica y total soberanía sobre tus datos.
 
 ---
-
-## 📁 Estructura del Proyecto
 
 ```text
-├── main.py                     # Interfaz gráfica moderna en CustomTkinter con pestañas y semáforo en vivo
-├── core_manager.py             # Controlador asíncrono multiplataforma (Docker, subprocess, threading)
-├── course_links.json           # Mapeo de URLs públicas de NotebookLM / Docs con fallback a academia/
-├── requirements.txt            # Dependencias del proyecto (customtkinter, packaging, pyinstaller, etc.)
-├── .gitignore                  # Exclusiones de Git preservando backups/ y academia/
-├── README.md                   # Documentación y guía de ejecución
-├── academia/                   # Guías educativas locales en Markdown (fallback automático)
-│   ├── curso_general.md        # Arquitectura del stack y variables de entorno
-│   ├── curso_webhooks.md       # Exposición de webhooks con Cloudflare Tunnels
-│   ├── curso_ia_local.md       # IA Local, modelos Llama 3.2 y Embeddings RAG
-│   ├── curso_git_sync.md       # Respaldo y versionado GitOps de flujos JSON
-│   └── curso_mantenimiento.md  # Purga de Docker, VACUUM en Postgres y limpieza
-└── stack/                      # Directorio de contenedores y volúmenes Docker
-    ├── docker-compose.yml      # Stack modular (postgres:pgvector, n8n, ollama, cloudflared)
-    ├── .env                    # Variables de entorno optimizadas
-    ├── init.sql                # Inicialización de la extensión PGVector en Postgres
-    ├── backups/workflows/      # Flujos exportados en formato JSON independiente
-    └── local-files/            # Directorio para archivos binarios de n8n (/files)
+ ╔═══════════════════════════════════════════════════════════════════════════════════╗
+ ║                          n8n CONTROL CENTER PRO ARQUITECTURA                     ║
+ ╠═══════════════════════════════════════════════════════════════════════════════════╣
+ ║                                                                                   ║
+ ║   [ INTERNET ]                                                                    ║
+ ║        │                                                                          ║
+ ║        ▼                                                                          ║
+ ║   [ Cloudflare Quick Tunnel ] ──( https://*.trycloudflare.com )                   ║
+ ║        │                                                                          ║
+ ║        ▼                                                                          ║
+ ║  ┌───────────────┐     ┌─────────────────────┐     ┌───────────────────────────┐  ║
+ ║  │   n8n CORE    │ <─> │  POSTGRESQL 16      │ <─> │  OLLAMA (IA LOCAL)        │  ║
+ ║  │   (:5678)     │     │  + PGVector (RAG)   │     │  • llama3.2:3b (Chat)     │  ║
+ ║  │               │     │  (:5432)            │     │  • nomic-embed-text (Vec) │  ║
+ ║  └───────┬───────┘     └─────────────────────┘     └───────────────────────────┘  ║
+ ║          │                                                                        ║
+ ║          ▼                                                                        ║
+ ║   📁 /files <───> 💻 stack/local-files/  (Taller de Archivos y PDFs)             ║
+ ║   📁 /backups <─> 💻 stack/backups/      (GitOps & Backups JSON independientes)  ║
+ ║                                                                                   ║
+ ╚═══════════════════════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
-## ⚡ Requisitos Previos
+## 🌟 Características Principales
 
-1. **Python 3.10+**: Asegúrate de tener Python instalado.
-2. **Docker & Docker Compose**: Docker Desktop (Windows/Mac) o Docker Engine (Linux) en ejecución.
-3. **Git**: Para el control de versiones y sincronización con GitHub.
-
----
-
-## 🚀 Inicio Rápido
-
-1. **Activar el entorno virtual**:
-   - En Windows (PowerShell):
-     ```powershell
-     .\.venv\Scripts\Activate.ps1
-     ```
-   - En Linux / macOS:
-     ```bash
-     source .venv/bin/activate
-     ```
-
-2. **Ejecutar la aplicación**:
-   ```bash
-   python main.py
-   # o utilizando el entorno directamente:
-   .\.venv\Scripts\python.exe main.py
-   ```
+| Módulo | Descripción | Beneficio Clave |
+| :--- | :--- | :--- |
+| **🚦 Semáforo en Vivo** | Monitorización reactiva en tiempo real cada 3 segundos de 4 servicios. | Sabrás al instante si n8n, Postgres, Ollama o el Túnel están activos. |
+| **🌐 Túnel Webhook Gratis** | Conexión saliente cifrada a través de Cloudflare Quick Tunnels. | Recibe webhooks de WhatsApp, Stripe o Telegram sin abrir puertos en tu router. |
+| **🧠 IA Local (Ollama)** | Inferencia local con `llama3.2:3b` y `nomic-embed-text` a 1 clic. | Privacidad absoluta para tus documentos y **0,00 €** en facturas de API. |
+| **📚 Memoria RAG (PGVector)**| Base de datos vectorial integrada en PostgreSQL 16 con extensión `vector`. | Dale a tu IA memoria fotográfica sin alucinaciones. |
+| **🐙 GitHub Sync (GitOps)** | Exportación automática de flujos a JSON y sincronización con Git. | Máquina del tiempo para tus automatizaciones y migración entre ordenadores. |
+| **🧹 Limpiador en 3 Niveles**| Purga de Docker, vaciado de temporales y Reset Nuclear con confirmación. | Mantén tu disco duro limpio y optimizado sin romper nada. |
+| **🎓 Botones `[🎓 Curso]`** | Micro-botones pedagógicos con fallback automático a guías Markdown locales. | Aprende cada concepto con explicaciones sencillas y analogías visuales. |
 
 ---
 
-## 🧩 Características Principales
+## 🚀 Instalación y Puesta en Marcha (Windows, macOS, Linux)
 
-### 1. Panel Principal & Semáforo en Vivo
-- Semáforo con refresco automático cada 3 segundos indicando el estado de **n8n**, **Postgres (PGVector)**, **Ollama** y **Túnel Webhook**.
-- Botones de arranque y parada seguros.
-- Túnel Cloudflare: genera una URL pública `https://*.trycloudflare.com` temporal, actualiza automáticamente `WEBHOOK_URL` en `stack/.env`, reinicia el contenedor de n8n y copia la URL al portapapeles.
-
-### 2. IA Local & RAG (Ollama)
-- Control de encendido/apagado del contenedor de Ollama.
-- **Kit IA Ligero (1 Clic)**: Descarga automática de `llama3.2:3b` (chat/agentes rápidos) y `nomic-embed-text` (vectores RAG).
-- Tarjeta de credenciales con botones para copiar hosts y contraseñas listos para pegar en n8n (`http://ollama:11434`, `postgres:5432`).
-
-### 3. GitHub Sync (Backups & GitOps)
-- **Exportar y Subir**: Exporta flujos de n8n con `n8n export:workflow --backup --output=/backups/workflows/` y hace commit/push en Git.
-- **Restaurar e Importar**: Descarga con `git pull` e importa los flujos con `n8n import:workflow --separate`.
-- Switch para auto-guardar en Git antes de detener el stack.
-
-### 4. Limpiador y Mantenimiento
-- **Nivel 1 (Azul)**: Purga de imágenes no usadas (`docker system prune -f`) y compactación de base de datos (`VACUUM FULL;` en Postgres).
-- **Nivel 2 (Naranja)**: Limpieza del taller temporal `stack/local-files/` con reporte de megabytes liberados.
-- **Nivel 3 (Rojo)**: Reset Nuclear del stack (`docker compose down -v --rmi all` con confirmación de seguridad).
-
-### 5. Configurar Academia & Botones `[🎓 Curso]`
-- Cada tarjeta dispone de un micro-botón `[🎓 Curso]`.
-- En la pestaña **Configurar Academia**, puedes vincular URLs públicas a cuadernos de Google NotebookLM o Google Docs. Si se deja en blanco, la aplicación abrirá automáticamente la guía local en Markdown de la carpeta `academia/`.
+### Requisitos Previos
+1. **Docker Desktop** (o Docker Engine en Linux) en ejecución.
+2. **Python 3.10 o superior**.
+3. **Git** instalado.
 
 ---
 
-## 📦 Compilación a Ejecutable Nativo (PyInstaller)
+### 🪟 En Windows
+Abre **PowerShell** en la carpeta del proyecto:
+```powershell
+# 1. Crear entorno virtual (si no existe)
+py -m venv .venv
 
-Para generar un ejecutable independiente:
+# 2. Instalar dependencias
+.\.venv\Scripts\pip.exe install -r requirements.txt
+
+# 3. Lanzar la aplicación
+.\.venv\Scripts\python.exe main.py
+```
+
+---
+
+### 🍎 En macOS (Apple Silicon / Intel)
+Abre la **Terminal** en la carpeta del proyecto:
 ```bash
-.\.venv\Scripts\pyinstaller.exe --noconfirm --onedir --windowed --name "n8n_Control_Center_Pro" --add-data "academia;academia" --add-data "course_links.json;." main.py
+# 1. Crear entorno virtual
+python3 -m venv .venv
+
+# 2. Activar e instalar dependencias
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Lanzar la aplicación
+python main.py
 ```
-El ejecutable se generará en la carpeta `dist/n8n_Control_Center_Pro/`.
+
+---
+
+### 🐧 En Linux (Ubuntu / Debian / Fedora)
+Abre tu terminal favorita:
+```bash
+# 1. Asegurar soporte para Tkinter (si no está instalado)
+sudo apt update && sudo apt install -y python3-tk python3-venv
+
+# 2. Crear entorno virtual e instalar
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Lanzar la aplicación
+python main.py
+```
+
+---
+
+## 🎙️ Cómo Crear tu Tutor IA en Google NotebookLM en 1 Minuto
+
+Hemos empaquetado todo el conocimiento del curso en 4 guías Markdown de alto impacto dentro de la carpeta `academia/`. Puedes convertir estos archivos en un **Tutor de Inteligencia Artificial personalizado**, capaz de responder tus dudas por chat o incluso generar un **podcast de audio interactivo**:
+
+```text
+ ┌─────────────────────────────────────────────────────────────────────────────┐
+ │                PASO A PASO: TU TUTOR IA EN NOTEBOOKLM                       │
+ ├─────────────────────────────────────────────────────────────────────────────┤
+ │                                                                             │
+ │  1. Abre tu navegador y ve a: https://notebooklm.google.com/               │
+ │                                                                             │
+ │  2. Pulsa en "+ Nuevo Cuaderno" y nómbralo: "Academia n8n Control Center"   │
+ │                                                                             │
+ │  3. En "Fuentes", selecciona "Subir archivos" y arrastra los 4 archivos     │
+ │     de la carpeta 'academia/' de tu proyecto:                               │
+ │     • 01_Curso_Express_n8n_y_Webhooks.md                                    │
+ │     • 02_Curso_Acelerado_RAG_y_Memoria_IA.md                                │
+ │     • 03_Curso_IA_Local_Gratis_con_Ollama.md                                │
+ │     • 04_Guia_GitHub_Backups_y_Limpiador.md                                 │
+ │                                                                             │
+ │  4. ¡Listo! NotebookLM analizará todo el contenido al instante.             │
+ │     • Puedes pulsar "Generar Guía de Estudio" o "Conversación de Audio".    │
+ │     • Haz clic en "Compartir" (arriba a la derecha) y copia el enlace.     │
+ │                                                                             │
+ │  5. Abre nuestra app, ve a la pestaña "🎓 Configurar Academia" y pega el    │
+ │     enlace en los módulos correspondientes.                                 │
+ │                                                                             │
+ │  👉 ¡A partir de ese momento, cada micro-botón [🎓 Curso] abrirá tu tutor  │
+ │     interactivo en vivo en el navegador!                                    │
+ │                                                                             │
+ └─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📋 Credenciales de Conexión Interna para n8n
+
+Al configurar nodos en el canvas de n8n, utiliza estos valores exactos:
+
+| Servicio | Parámetro | Valor para n8n |
+| :--- | :--- | :--- |
+| **Ollama (IA Local)** | Base URL | `http://ollama:11434` |
+| **Ollama Modelos** | Chat / Agentes | `llama3.2:3b` |
+| **Ollama Modelos** | Embeddings RAG | `nomic-embed-text` |
+| **Postgres PGVector** | Host | `postgres` |
+| **Postgres PGVector** | Puerto | `5432` |
+| **Postgres PGVector** | Database | `n8n` |
+| **Postgres PGVector** | Usuario / Password | `n8n` / `n8n_password` |
+| **Postgres PGVector** | SSL | `disable` |
+
+---
+
+## 🧹 Los 3 Niveles del Limpiador
+
+- 🟦 **Nivel 1 - Purga de Basura (Azul)**:
+  Ejecuta `docker system prune -f` y `VACUUM FULL;` en PostgreSQL. 100% seguro, recupera espacio y compacta la base de datos sin tocar flujos ni datos.
+- 🟧 **Nivel 2 - Vaciar Taller Temporal (Naranja)**:
+  Limpia la carpeta `stack/local-files/` (ficheros generados por tus ejecuciones de n8n) y te informa de los Megabytes liberados.
+- 🟥 **Nivel 3 - Reset Nuclear (Rojo)**:
+  Acción destructiva protegida por confirmación. Destruye los contenedores y volúmenes (`down -v --rmi all`) para dejar la instalación limpia como el primer día.
+
+---
+
+## 📦 Compilación a Ejecutable Nativo (.exe / App)
+
+Si deseas empaquetar la aplicación en un ejecutable autónomo utilizando **PyInstaller**:
+
+```bash
+# En Windows:
+.\.venv\Scripts\pyinstaller.exe --noconfirm --onedir --windowed --name "n8n_Control_Center_Pro" --add-data "academia;academia" --add-data "course_links.json;." main.py
+
+# En Linux / macOS:
+pyinstaller --noconfirm --onedir --windowed --name "n8n_Control_Center_Pro" --add-data "academia:academia" --add-data "course_links.json:." main.py
+```
+El binario resultante se creará en la carpeta `dist/n8n_Control_Center_Pro/`.
+
+---
+
+## 📄 Licencia y Filosofía
+Proyecto desarrollado bajo la filosofía **Vibe Coding**: máxima potencia visual, arquitectura profesional y cero complicaciones técnicas. ¡Feliz automatización!

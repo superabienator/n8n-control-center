@@ -482,6 +482,20 @@ class N8NControlCenterApp(ctk.CTk):
         )
         cr_title.pack(side="left")
 
+        # Micro-button [🎓 Curso RAG & Memoria]
+        btn_curso_rag = ctk.CTkButton(
+            cr_head,
+            text="🎓 Curso RAG & Memoria",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            fg_color=COLOR_ACADEMY,
+            hover_color=COLOR_ACADEMY_HOVER,
+            width=160,
+            height=26,
+            corner_radius=6,
+            command=lambda: self.core.open_course("rag"),
+        )
+        btn_curso_rag.pack(side="right")
+
         cr_desc = ctk.CTkLabel(
             creds_card,
             text="Usa estos valores exactos al configurar credenciales en los nodos de n8n para comunicarse por la red interna:",
@@ -796,11 +810,11 @@ class N8NControlCenterApp(ctk.CTk):
         self.course_entries: Dict[str, ctk.CTkEntry] = {}
 
         module_labels = {
-            "general": "Módulo 1: Stack Base y Arquitectura",
-            "webhooks": "Módulo 2: Webhooks y Túneles Cloudflare",
-            "ia_local": "Módulo 3: IA Local, RAG y Vectores (Ollama)",
-            "git_sync": "Módulo 4: GitHub Sync y Control de Versiones",
-            "mantenimiento": "Módulo 5: Limpieza, Optimización y Mantenimiento",
+            "general": "Módulo 1: n8n desde Cero y Webhooks (01_Curso_Express)",
+            "rag": "Módulo 2: RAG y Memoria de IA con PGVector (02_Curso_Acelerado)",
+            "ia_local": "Módulo 3: IA Local y Modelos con Ollama (03_Curso_IA_Local)",
+            "git_sync": "Módulo 4: GitHub Sync y Máquina del Tiempo (04_Guia_GitHub)",
+            "mantenimiento": "Módulo 5: Limpiador y Mantenimiento Seguro (04_Guia_Limpiador)",
         }
 
         form_frame = ctk.CTkFrame(acad_card, fg_color="#131522", corner_radius=8, border_color=COLOR_CARD_BORDER, border_width=1)
