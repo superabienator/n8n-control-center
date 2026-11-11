@@ -834,15 +834,21 @@ volumes:
             self.course_links_file.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
             self.log(f"Enlace de academia guardado para [{module_key}]: {url}")
 
-    def open_course(self, module_key: str) -> None:
+    def open_course(
+        self,
+        module_key: str,
+        on_open_local: Optional[Callable[[Path, str], None]] = None,
+    ) -> None:
         """
         Opens either the online Google NotebookLM/Doc link,
-        or the local markdown file in academia/ as a fallback.
+        calls on_open_local (e.g. in-app Markdown viewer), or renders as styled HTML in browser.
+        Never calls os.startfile to avoid unwanted associations like Calibre.
         """
         data = self.get_course_data()
         entry = data.get(module_key, {})
         url = entry.get("url", "").strip()
         fallback_rel = entry.get("fallback_file", "")
+        title = entry.get("title", module_key)
 
         if url.startswith("http://") or url.startswith("https://"):
             self.log(f"Abriendo enlace en línea para '{module_key}': {url}")
@@ -851,18 +857,16 @@ volumes:
 
         fallback_path = self.base_dir / fallback_rel
         if fallback_path.exists():
-            self.log(f"Abriendo guía local para '{module_key}': {fallback_path.name}")
-            try:
-                system = platform.system()
-                if system == "Windows":
-                    os.startfile(str(fallback_path))
-                elif system == "Darwin":
-                    subprocess.run(["open", str(fallback_path)], check=False)
-                else:
-                    subprocess.run(["xdg-open", str(fallback_path)], check=False)
-            except Exception as e:
-                self.log(f"Abriendo en el navegador como alternativa: {e}")
-                webbrowser.open(fallback_path.as_uri())
+            self.log(f"Abriendo guía de academia para '{module_key}': {fallback_path.name}")
+            if on_open_local:
+                on_open_local(fallback_path, title)
+            else:
+                try:
+                    from markdown_viewer import open_markdown_in_browser
+                    open_markdown_in_browser(fallback_path, title=title)
+                except Exception as e:
+                    self.log(f"Abriendo en el navegador como alternativa: {e}")
+                    webbrowser.open(fallback_path.as_uri())
         else:
             self.log(f"No se encontró archivo de academia ni enlace configurado para '{module_key}'.", "warning")
 

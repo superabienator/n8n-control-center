@@ -21,6 +21,7 @@ import customtkinter as ctk
 
 from autostart_manager import AutostartManager
 from core_manager import CoreManager
+from markdown_viewer import MarkdownViewerWindow
 
 # Appearance settings
 ctk.set_appearance_mode("Dark")
@@ -256,7 +257,7 @@ class N8NControlCenterApp(ctk.CTk):
             width=110,
             height=26,
             corner_radius=6,
-            command=lambda: self.core.open_course("general"),
+            command=lambda: self.open_course_ui("general"),
         )
         btn_curso_gen.pack(side="right")
 
@@ -333,7 +334,7 @@ class N8NControlCenterApp(ctk.CTk):
             width=130,
             height=26,
             corner_radius=6,
-            command=lambda: self.core.open_course("webhooks"),
+            command=lambda: self.open_course_ui("webhooks"),
         )
         btn_curso_wh.pack(side="right")
 
@@ -434,7 +435,7 @@ class N8NControlCenterApp(ctk.CTk):
             width=120,
             height=26,
             corner_radius=6,
-            command=lambda: self.core.open_course("ia_local"),
+            command=lambda: self.open_course_ui("ia_local"),
         )
         btn_curso_ia.pack(side="right")
 
@@ -507,7 +508,7 @@ class N8NControlCenterApp(ctk.CTk):
             width=160,
             height=26,
             corner_radius=6,
-            command=lambda: self.core.open_course("rag"),
+            command=lambda: self.open_course_ui("rag"),
         )
         btn_curso_rag.pack(side="right")
 
@@ -590,7 +591,7 @@ class N8NControlCenterApp(ctk.CTk):
             width=130,
             height=26,
             corner_radius=6,
-            command=lambda: self.core.open_course("git_sync"),
+            command=lambda: self.open_course_ui("git_sync"),
         )
         btn_curso_git.pack(side="right")
 
@@ -708,7 +709,7 @@ class N8NControlCenterApp(ctk.CTk):
             width=150,
             height=26,
             corner_radius=6,
-            command=lambda: self.core.open_course("mantenimiento"),
+            command=lambda: self.open_course_ui("mantenimiento"),
         )
         btn_curso_maint.pack(side="right")
 
@@ -875,7 +876,7 @@ class N8NControlCenterApp(ctk.CTk):
                 height=28,
                 fg_color=COLOR_ACADEMY,
                 hover_color=COLOR_ACADEMY_HOVER,
-                command=lambda k=key: self.core.open_course(k),
+                command=lambda k=key: self.open_course_ui(k),
             )
             btn_test.pack(side="right")
 
@@ -1240,6 +1241,13 @@ class N8NControlCenterApp(ctk.CTk):
             val = entry.get().strip()
             self.core.update_course_link(key, val)
         messagebox.showinfo("Academia", "Todos los enlaces de la academia han sido guardados correctamente.")
+
+    def open_course_ui(self, module_key: str):
+        """Opens either the online link or launches the in-app MarkdownViewerWindow."""
+        def open_local_viewer(file_path: Path, title: str):
+            MarkdownViewerWindow(self, file_path=file_path, title=title)
+
+        self.core.open_course(module_key, on_open_local=open_local_viewer)
 
 
 def main():
