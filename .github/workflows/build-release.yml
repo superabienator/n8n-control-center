@@ -1,0 +1,109 @@
+name: Build & Release Multiplatform
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: n8n-control-center-windows
+            binary_name: n8n-control-center.exe
+            data_sep: ";"
+          - os: ubuntu-latest
+            artifact_name: n8n-control-center-linux
+            binary_name: n8n-control-center
+            data_sep: ":"
+          - os: macos-latest
+            artifact_name: n8n-control-center-macos
+            binary_name: n8n-control-center
+            data_sep: ":"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install System Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk tk-dev xvfb
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Executable with PyInstaller
+        run: |
+          pyinstaller --noconfirm --onefile --windowed \
+            --collect-all customtkinter \
+            --add-data "academia${{ matrix.data_sep }}academia" \
+            --add-data "course_links.json${{ matrix.data_sep }}." \
+            --name "n8n-control-center" \
+            main.py
+        shell: bash
+
+      - name: Prepare Package Distribution Folder
+        shell: bash
+        run: |
+          mkdir -p dist_release
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            cp "dist/n8n-control-center.exe" dist_release/
+            cp "iniciar_windows.bat" dist_release/
+          else
+            cp "dist/n8n-control-center" dist_release/
+            cp "iniciar_mac_linux.sh" dist_release/
+            chmod +x dist_release/n8n-control-center dist_release/iniciar_mac_linux.sh
+          fi
+          cp -r academia dist_release/
+          cp course_links.json dist_release/
+          cp README.md dist_release/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist_release/
+          retention-days: 14
+
+      - name: Create Zip Archive for Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          cd dist_release
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            7z a "../${{ matrix.artifact_name }}.zip" *
+          else
+            tar -czvf "../${{ matrix.artifact_name }}.tar.gz" *
+          fi
+
+      - name: Publish GitHub Release Asset
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.zip
+            *.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

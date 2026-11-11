@@ -12,6 +12,7 @@ import platform
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import webbrowser
@@ -20,11 +21,25 @@ from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
 
 
+def get_bundle_dir() -> Path:
+    """Directory where bundled assets live (in onefile mode, sys._MEIPASS)."""
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS).resolve()
+    return Path(__file__).parent.resolve()
+
+
+def get_app_dir() -> Path:
+    """Directory where executable lives and where user data (stack/, academia/) should persist."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent.resolve()
+    return Path(__file__).parent.resolve()
+
+
 class CoreManager:
     """Manages Docker Compose stack, background threads, and integrations."""
 
     def __init__(self, base_dir: Optional[Path] = None, log_callback: Optional[Callable[[str, str], None]] = None):
-        self.base_dir = (base_dir or Path(__file__).parent).resolve()
+        self.base_dir = (base_dir or get_app_dir()).resolve()
         self.stack_dir = self.base_dir / "stack"
         self.compose_file = self.stack_dir / "docker-compose.yml"
         self.env_file = self.stack_dir / ".env"
@@ -174,6 +189,20 @@ class CoreManager:
         # 3. stack/docker-compose.yml
         if not self.compose_file.exists():
             self.generate_docker_compose()
+
+        # 4. If running as bundled executable, extract bundled course_links & academia if missing
+        bundle_dir = get_bundle_dir()
+        if bundle_dir != self.base_dir:
+            bundled_links = bundle_dir / "course_links.json"
+            if not self.course_links_file.exists() and bundled_links.exists():
+                shutil.copy2(bundled_links, self.course_links_file)
+
+            bundled_acad = bundle_dir / "academia"
+            if bundled_acad.exists():
+                for md_file in bundled_acad.glob("*.md"):
+                    dest_md = self.academia_dir / md_file.name
+                    if not dest_md.exists():
+                        shutil.copy2(md_file, dest_md)
 
     def generate_docker_compose(self) -> None:
         """Generates modular docker-compose.yml with GPU detection for Ollama."""
