@@ -1,0 +1,32 @@
+{
+  "general": {
+    "title": "Stack Base y Primeros Pasos en n8n",
+    "description": "Aprende los fundamentos de n8n, arquitectura de contenedores y variables de entorno.",
+    "url": "",
+    "fallback_file": "academia/curso_general.md"
+  },
+  "webhooks": {
+    "title": "Webhooks y Tneles Pblicos con Cloudflare",
+    "description": "Crea endpoints pblicos para recibir llamadas externas (Stripe, WhatsApp, Webhooks) sin abrir puertos.",
+    "url": "",
+    "fallback_file": "academia/curso_webhooks.md"
+  },
+  "ia_local": {
+    "title": "IA Local, RAG y Vectores con Ollama & PGVector",
+    "description": "Despliega modelos de lenguaje locales (Llama 3.2) y embeddings (nomic-embed-text) conectados con Postgres.",
+    "url": "",
+    "fallback_file": "academia/curso_ia_local.md"
+  },
+  "git_sync": {
+    "title": "GitHub Sync y Versionado Automtico de Flujos",
+    "description": "Estrategias de copia de seguridad automatizada, migraciones entre entornos y GitOps para n8n.",
+    "url": "",
+    "fallback_file": "academia/curso_git_sync.md"
+  },
+  "mantenimiento": {
+    "title": "Limpieza, Optimizacin de Base de Datos y Purga",
+    "description": "Buenas prcticas para evitar la saturacin del disco: VACUUM en PostgreSQL, purga de binarios y Docker prune.",
+    "url": "",
+    "fallback_file": "academia/curso_mantenimiento.md"
+  }
+}

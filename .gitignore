@@ -1,0 +1,29 @@
+# Entornos virtuales y Python
+.venv/
+env/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Compilacin e instalador
+build/
+dist/
+*.spec
+
+# Archivos locales y secretos del stack
+stack/.env
+stack/local-files/*
+!stack/local-files/.gitkeep
+stack/docker-compose.override.yml
+
+# Configuracin interna de la app
+app_settings.json
+
+# Permitir especficamente backups de workflows de n8n y guas de academia
+!stack/backups/
+!stack/backups/workflows/
+!stack/backups/workflows/*.json
+!academia/
+!academia/*.md
